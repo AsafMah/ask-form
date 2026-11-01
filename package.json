@@ -1,0 +1,12 @@
+{
+    "name": "ask-form",
+    "version": "1.0.0",
+    "private": true,
+    "description": "A Copilot extension that asks several related, typed questions in one form, with the agent's context shown inside it.",
+    "type": "module",
+    "license": "MIT",
+    "scripts": {
+        "test": "node --test --test-timeout=10000",
+        "check": "node --check extension.mjs && node --check form.mjs"
+    }
+}
