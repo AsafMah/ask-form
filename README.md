@@ -56,6 +56,9 @@ Every question type also accepts:
 - `description`: help text shown under the field.
 - `required`: defaults to `false`. Blank answers are reported back as `unanswered`.
 
+Any other key on a question is rejected with an error that lists the allowed keys, so a typo
+such as `minimum` for `min` cannot silently drop a constraint.
+
 An elicitation field cannot combine a list with free text, so `allowOther` adds a separate
 `<id>__other` text field.
 
@@ -174,7 +177,9 @@ node --check extension.mjs && node --check form.mjs
 - partial and invalid answers
 - decline, dismissal and an unknown action
 - an unsupported host, an elicitation error, and sub-agent rejection
-- validation of the tool input
+- validation of the tool input, including unknown question keys, and that the tool schema
+  accepts exactly the keys the validator does
+- `enabled: false` in the config, which refuses without showing a form
 - the one-form-at-a-time rule
 - host abort with a late answer, which is ignored and kept out of the log
 - the timeout clamp below 1800 s, using mocked timers, so no test waits

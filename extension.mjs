@@ -165,6 +165,7 @@ const QUESTION_SCHEMA = {
         minItems: { type: "integer" }, maxItems: { type: "integer" },
     },
     required: ["id", "question", "type"],
+    additionalProperties: false,
 };
 
 const session = await joinSession({

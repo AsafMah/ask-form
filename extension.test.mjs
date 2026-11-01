@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { boot } from "./test-support/host.mjs";
+import { QUESTION_KEYS } from "./form.mjs";
 
 const CONTEXT = "## Proposal\n\n| Group | Items |\n| --- | --- |\n| A | 12 |\n| B | 44 |\n\nPick how to proceed.";
 
@@ -133,6 +134,7 @@ test("invalid requests are rejected with actionable errors and nothing shown", a
         [{ context: CONTEXT, questions: [{ id: "a", question: "Q", type: "boolean", options: ["x", "y"] }] }, /only applies to choice/],
         [{ context: CONTEXT, questions: [{ id: "a", question: "Q".repeat(301), type: "boolean" }] }, /move detail into "context"/],
         [{ context: CONTEXT, questions: [{ id: "a", question: "Q", type: "text", allowOther: true }] }, /"allowOther" only applies/],
+        [{ context: CONTEXT, questions: [{ id: "a", question: "Q", type: "integer", minimum: 1 }] }, /unknown key\(s\) "minimum"; allowed: .*\bmin\b/],
         ["nope", /must be an object/],
     ];
     for (const [args, pattern] of cases) {
@@ -220,4 +222,15 @@ test("the tool is always loaded and never claims to replace permission prompts",
     assert.equal(host.options.tools.length, 1);
     assert.equal(host.options.askUserVariant, undefined);
     assert.equal(host.options.onElicitationRequest, undefined);
+    const items = tool.parameters.properties.questions.items;
+    assert.equal(items.additionalProperties, false);
+    assert.deepEqual(Object.keys(items.properties).sort(), [...QUESTION_KEYS].sort(), "tool schema and validator must accept the same keys");
+});
+
+test("enabled:false refuses without showing a form", async (t) => {
+    const host = await boot(t, { config: { enabled: false } });
+    const res = await host.call({ context: CONTEXT, questions: QUESTIONS.slice(0, 1) });
+    assert.equal(res.resultType, "failure");
+    assert.match(res.textResultForLlm, /ask_form is disabled by configuration/);
+    assert.equal(host.requests.length, 0);
 });

@@ -77,6 +77,11 @@ function checkDefault(q, where, errors) {
 }
 
 // Returns { errors } or { form } where form is the normalised request.
+export const QUESTION_KEYS = Object.freeze([
+    "id", "question", "type", "options", "default", "description", "required", "allowOther",
+    "min", "max", "minLength", "maxLength", "minItems", "maxItems",
+]);
+
 export function validateRequest(args) {
     const errors = [];
     if (!isObject(args)) return { errors: ["Arguments must be an object with \"context\" and \"questions\"."] };
@@ -96,6 +101,11 @@ export function validateRequest(args) {
     qs.forEach((q, i) => {
         const where = `questions[${i}]`;
         if (!isObject(q)) { errors.push(`${where} must be an object.`); return; }
+        // A misspelled constraint (e.g. "minimum" for "min") would otherwise be dropped silently.
+        const unknown = Object.keys(q).filter((k) => !QUESTION_KEYS.includes(k));
+        if (unknown.length) {
+            errors.push(`${where}: unknown key(s) ${unknown.map((k) => `"${k}"`).join(", ")}; allowed: ${QUESTION_KEYS.join(", ")}.`);
+        }
         if (typeof q.id !== "string" || !ID.test(q.id) || q.id.endsWith(OTHER_SUFFIX) || RESERVED.has(q.id)) {
             errors.push(`${where}: "id" must match ${ID} and not be "comment" or end in "${OTHER_SUFFIX}".`);
         } else if (ids.has(q.id)) errors.push(`${where}: duplicate id "${q.id}".`);
