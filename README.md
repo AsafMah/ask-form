@@ -96,8 +96,8 @@ extension does not:
 
 ## Install
 
-Ask Copilot to install it directly from the repository once it is published, or place the folder
-yourself and run `/extensions reload`:
+Clone <https://github.com/AsafMah/ask-form>, then either ask Copilot to install it from the
+repository, or place the folder yourself and run `/extensions reload`:
 
 | Platform | Destination |
 | -------- | ----------- |
@@ -108,12 +108,17 @@ The files required at runtime are `extension.mjs` and `form.mjs`. Install from a
 snapshot of a commit rather than the working tree:
 
 ```powershell
+git clone https://github.com/AsafMah/ask-form C:\path\to\ask-form
 $sha = git -C C:\path\to\ask-form rev-parse HEAD
 $dest = "$env:USERPROFILE\.copilot\extension-releases\ask-form\$sha"
+New-Item -ItemType Directory -Force (Split-Path $dest) | Out-Null
 git -C C:\path\to\ask-form archive --format=zip -o "$dest.zip" $sha
 Expand-Archive "$dest.zip" $dest; Remove-Item "$dest.zip"
 New-Item -ItemType Junction -Path "$env:USERPROFILE\.copilot\extensions\ask-form" -Target $dest
 ```
+
+To uninstall, remove only the link, never the snapshot through it:
+`(Get-Item "$env:USERPROFILE\.copilot\extensions\ask-form").Delete()`.
 
 ## Configuration
 
